@@ -1,6 +1,6 @@
 import curses
 
-__LOGFP = file("dialog.log", "w")
+__LOGFP = None #file("dialog.log", "w")
 def LOG(msg):
   global __LOGFP
   if __LOGFP:
@@ -23,7 +23,7 @@ class DialogWin(object):
     self._col     = col
     self._width   = width
     self._height  = height
-    self._window  = None
+    self._win     = None
     self._title   = (None, 0, 2)
     self._shown   = False
     self._labels  = []
@@ -110,6 +110,9 @@ class DialogWin(object):
     self._parent.refresh()
     self._shown = False
 
+  def pos(self):
+    return (self._row, self._col)
+  
   def setTitle(self, title, row=0, col=2):
     self._title = (title, row, col)
 
@@ -119,12 +122,16 @@ class DialogWin(object):
         try:
           return self._win.getkey()
         except curses.error as curx:
-          if curx.message == 'no input':
+          if str(curx) == 'no input':
             continue
           else:
             raise curx
     return None
       
+  def refresh(self):
+    if self._shown:
+      self._win.refresh()
+
   def show(self):
     if self.visible():
       return
@@ -145,9 +152,15 @@ class DialogWin(object):
     self._win.refresh()
     self._shown = True
 
+  def size(self):
+    return (self._width, self._height)
+  
   def visible(self):
     return self._shown
 
+  def window(self):
+    return self._win
+  
   def _drawFrame(self):
     self._win.box()
     if self._title[0]:
@@ -201,7 +214,7 @@ def main(stdscr):
     try:
       input = mainWin.getkey()
     except curses.error as curx:
-      if curx.message == 'no input':
+      if str(curx) == 'no input':
         input = "<NoInput>"
       else:
         raise curx

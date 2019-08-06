@@ -59,15 +59,15 @@ class App(object):
   def mainLoop(self):
     while not self._quit:
       try:
+        input = None
         input = self._mainWin.getkey()
       except curses.error as curx:
-        if curx.message == 'no input':
-          input = "<NoInput>"
+        if str(curx) == 'no input':
           if self._noInputProc:
             self._noInputProc(self, self._noInputCtx)
         else:
           raise curx
-      if self._inputProc:
+      if input and self._inputProc:
         self._inputProc(self, input, self._inputCtx)
 
   def mainWin(self):

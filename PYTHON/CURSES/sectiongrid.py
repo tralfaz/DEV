@@ -5,6 +5,8 @@ import os
 import subprocess
 import sys
 
+LOG = file('sectiongrid.log', 'w')
+
 
 def CenterLine(win, line):
   maxRows, maxCols = win.getmaxyx()
@@ -30,13 +32,14 @@ class SectionGrid(object):
     self._iconColor   = 1
     self._inputProc   = None
     self._inputCtx    = None
-    self._noInputProc = None
+    self._noInputProc   = None
     self._noInputCtx  = None
     self._cursor      = None
     self._msgWin      = None
     self._dcColors    = {}
-    
-    self._sections = [SectionInfo() for x in range(self._sectionRows*self._sectionCols)]
+    self._sections = [SectionInfo() for x in \
+                      range(self._sectionRows*self._sectionCols)]
+    self._testMode = False
     
   def createMainWindow(self):
     # Init curses mode
@@ -44,7 +47,6 @@ class SectionGrid(object):
     curses.noecho()  # turn off key echo
     curses.cbreak()  # turn of input buffering
     self._mainWin.keypad(1) # Process function key escape sequences as single key events
-    curses.curs_set(0)
     if curses.has_colors():
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
@@ -55,7 +57,8 @@ class SectionGrid(object):
         curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_BLUE)
-    
+    curses.curs_set(0)
+        
     self._ttyCols = curses.COLS
     self._ttyRows = curses.LINES
 
@@ -70,7 +73,6 @@ class SectionGrid(object):
     self._mainWin.keypad(0)
     curses.nocbreak()
     curses.echo()
-    #curses.curs_set(1)
 
     curses.endwin()
 
@@ -91,8 +93,11 @@ class SectionGrid(object):
     self._mainWin.addch(ulRow+2, ulCol+2, curses.ACS_HLINE, select)
     self._mainWin.addch(ulRow+2, ulCol+3, corners[3], select)    # LR
     if drawIcons:
-      self._mainWin.addch(ulRow+1, ulCol+1, icon[0], attrs[0]|curses.A_BOLD)
-      self._mainWin.addch(ulRow+1, ulCol+2, icon[1], attrs[1]|curses.A_BOLD)
+      iAttr = curses.A_BOLD
+      pAttr = curses.A_REVERSE if icon[0] == 'P' else 0
+      self._mainWin.addch(ulRow+1, ulCol+1, icon[0], attrs[0]|iAttr|pAttr)
+      pAttr = curses.A_REVERSE if icon[1] == 'P' else 0
+      self._mainWin.addch(ulRow+1, ulCol+2, icon[1], attrs[1]|iAttr|pAttr)
 
   def drawGrid(self):
     for col in range(self._sectionCols):
@@ -129,6 +134,9 @@ class SectionGrid(object):
       if self._inputProc:
         self._inputProc(self, input, self._inputCtx)
 
+      if not self._testMode:
+        continue
+      
       if input == "KEY_UP" and cellRow > 0:
         cellRow -= 1
         self.moveCursor(-1, 0)
@@ -270,7 +278,7 @@ class SectionGrid(object):
              5: '<',   # TRANSFERRING
              6: 'T',   # TRANSFERRED
              7: '&',   # POSTPROCESS
-             8: '$',   # SUCCESS
+             8: 'S',   # SUCCESS
            126: curses.ACS_DIAMOND # ANY
         }
     return self._stateIcons.get(state, '*')
@@ -328,10 +336,10 @@ def main(argv):
   argv = sys.argv
   grid = SectionGrid(int(argv[1]), int(argv[2]))
   grid.createMainWindow()
+  grid._testMode = True
   grid.mainLoop()
   grid.destroyMainWindow()
   
   
 if __name__ == '__main__':
   curses.wrapper(main)
-

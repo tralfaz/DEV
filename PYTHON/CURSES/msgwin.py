@@ -95,7 +95,7 @@ class MessageWin(object):
         try:
           return self._msgWin.getkey()
         except curses.error as curx:
-          if curx.message == 'no input':
+          if str(curx) == 'no input':
             continue
           else:
             raise curx
@@ -190,24 +190,16 @@ def main(stdscr):
     try:
       input = mainWin.getkey()
     except curses.error as curx:
-      if curx.message == 'no input':
+      if str(curx) == 'no input':
         input = "<NoInput>"
       else:
         raise curx
 
-    if input == "KEY_UP":
-      msgWin.scroll(1)
-    elif input == "KEY_DOWN":
-      msgWin.scroll(-1)
-    elif input == "KEY_PPAGE":
-      msgWin.scroll(18)
-    elif input == "KEY_NPAGE":
-      msgWin.scroll(-18)
-    elif input.lower() == 'a':
+    if input.lower() == 'a':
       msg = "MSG(%02d) %s" % (msgNum, chr(ord('A')+msgNum-1)*msgLen)
       msgWin.add(msg, input == 'A')
       msgNum += 1
-      msgLen += 20
+      msgLen += 10
     elif input == 'b':
       msgWin.browse()
     elif input == 'h':
