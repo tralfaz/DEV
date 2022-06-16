@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+import base64
+import sys
+
+
+if __name__ == "__main__":
+  try:
+    fp = open(sys.argv[1], "rb")
+    uudata = fp.read()
+    fp.close()
+    data = base64.standard_b64decode(uudata)
+    fp = open(sys.argv[2], "wb")
+    fp.write(data)
+    fp.close()
+  except IOError as ioe:
+    print('%s' % ioe)
+

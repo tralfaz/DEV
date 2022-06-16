@@ -1,0 +1,17 @@
+#!/usr/bin/python
+
+import base64
+import sys
+
+
+
+if __name__ == "__main__":
+  try:
+    fp = open(sys.argv[1], "rb")
+    print("========== begin %s ==========" % sys.argv[1])
+    data = fp.read()
+    fp.close()
+    uudata = base64.standard_b64encode(data)
+    print("\n%s\n" % uudata.decode())
+  except IOError as ioe:
+    print('%s' % ioe)
